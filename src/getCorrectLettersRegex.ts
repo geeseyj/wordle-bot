@@ -1,17 +1,17 @@
-export default function getCorrectLettersRegex(game: Record<string, unknown>): RegExp {
-	const board = game?.boardState as Array<string>;
-	const guesses = board.filter(Boolean);
+import Wordle from "./wordle";
 
+export default function getCorrectLettersRegex(wordle: Wordle): RegExp {
+	const guesses = wordle.getGuesses();
 
 	if (guesses.length === 0) {
 		return /[a-z]{5}/;
 	}	
 
 	const correctSoFar = Array(5).fill(`[a-z]`);
-	const evaluations = game?.evaluations as Array<Array<string>>;
+	const evaluations = wordle.getGuessEvaluations();
 
-	evaluations.forEach((evaluation: Array<string>|null, evaluationIndex: number) => {
-		if (evaluation === null || !evaluation.includes(`correct`)) {
+	evaluations.forEach((evaluation, evaluationIndex) => {
+		if (!evaluation.includes(`correct`)) {
 			return;
 		}
 
@@ -20,7 +20,7 @@ export default function getCorrectLettersRegex(game: Record<string, unknown>): R
 				return;
 			}
 
-			correctSoFar[letterIndex] = board[evaluationIndex][letterIndex];
+			correctSoFar[letterIndex] = guesses[evaluationIndex][letterIndex];
 		});
 	});
 

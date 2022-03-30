@@ -1,5 +1,5 @@
 type gameStatus = `IN_PROGRESS` | `WIN` | `FAIL`;
-type letterEvaluation = `correct` | `present` | `excluded`;
+type letterEvaluation = `correct` | `present` | `absent`;
 
 export default class Wordle {
 	protected letterEvaluations: Record<string, letterEvaluation> = {};
@@ -13,6 +13,10 @@ export default class Wordle {
 		return this.letterEvaluations;
 	}
 
+	getStatus() {
+		return this.status;
+	}
+
 	guess(word: string) {
 		if (this.guesses.length > 5) {
 			return;
@@ -21,46 +25,42 @@ export default class Wordle {
 		const solutionArray = this.solution.split(``);
 		const evaluation = [] as Array<letterEvaluation>;
 
-		word.split(``).map((letter, index) => {
+		word?.split(``).forEach((letter, index) => {
 			if (solutionArray[index] === letter) {
 				evaluation[index] = `correct`;
+				this.letterEvaluations[letter] = `correct`;
 				solutionArray[index] = ``;
-				return null;
+				return;
 			}
 
-			return letter;
-		}).map((letter, index) => {
-			if (!letter) {
-				return ``;
-			}
+			const indexOfLetterInSolution = solutionArray.indexOf(letter);
 
-			const solutionLetterIndex = solutionArray.indexOf(letter);
-
-			if (solutionLetterIndex !== -1) {
+			if (-1 !== indexOfLetterInSolution) {
 				evaluation[index] = `present`;
-				solutionArray[solutionLetterIndex] = ``;
-				return ``;
+				this.letterEvaluations[letter] = this.letterEvaluations[letter] || `present`;
+				return;
 			}
 
-			evaluation[index] = `excluded`;
+			evaluation[index] = `absent`;
+			this.letterEvaluations[letter] = this.letterEvaluations[letter] || `absent`;
 		});
 
 		this.guesses.push(word);
 		this.guessEvaluations.push(evaluation);
-
-		word.split(``).forEach((letter, index) => {
-			if (this.letterEvaluations[letter] === `correct`) {
-				return;
-			}
-
-			this.letterEvaluations[letter] = evaluation[index];
-		});
 
 		if (word === this.solution) {
 			this.status = `WIN`;
 		} else if (this.guesses.length > 5) {
 			this.status = `FAIL`;
 		}
+	}
+
+	getGuesses() {
+		return this.guesses;
+	}
+
+	getGuessEvaluations() {
+		return this.guessEvaluations;
 	}
     
 }
